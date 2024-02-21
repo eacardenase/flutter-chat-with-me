@@ -1,7 +1,11 @@
-import 'package:chat_with_me/widgets/user_image_picker.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+
+import 'package:chat_with_me/widgets/user_image_picker.dart';
 
 final _firebase = FirebaseAuth.instance;
 
@@ -17,12 +21,30 @@ class _AuthScreenState extends State<AuthScreen> {
   var _isLogin = true;
   var _enteredEmail = '';
   var _enteredPassword = '';
+  File? _selectedImage;
+
+  void _selectImage(File image) {
+    _selectedImage = image;
+  }
 
   void _submit() async {
     final formState = _formKey.currentState!;
     final isValid = formState.validate();
 
     if (!isValid) {
+      return;
+    }
+
+    if (!_isLogin && _selectedImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          duration: Duration(seconds: 3),
+          content: Text(
+            'User image profile must be added. ',
+          ),
+        ),
+      );
+
       return;
     }
 
@@ -39,6 +61,16 @@ class _AuthScreenState extends State<AuthScreen> {
           email: _enteredEmail,
           password: _enteredPassword,
         );
+
+        final storageRef = FirebaseStorage.instance
+            .ref()
+            .child('user_images')
+            .child('${userCredentials.user!.uid}.jpg');
+
+        await storageRef.putFile(_selectedImage!);
+        final imageUrl = await storageRef.getDownloadURL();
+
+        print(imageUrl);
       }
 
       formState.reset();
@@ -89,7 +121,10 @@ class _AuthScreenState extends State<AuthScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (!_isLogin) const UserImagePicker(),
+                          if (!_isLogin)
+                            UserImagePicker(
+                              onPickImage: _selectImage,
+                            ),
                           TextFormField(
                             decoration: const InputDecoration(
                               label: Text('Email Address'),
