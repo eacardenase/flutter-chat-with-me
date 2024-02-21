@@ -19,6 +19,7 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   final _formKey = GlobalKey<FormState>();
   var _isLogin = true;
+  var _isAuthenticating = false;
   var _enteredEmail = '';
   var _enteredPassword = '';
   File? _selectedImage;
@@ -57,6 +58,10 @@ class _AuthScreenState extends State<AuthScreen> {
           password: _enteredPassword,
         );
       } else {
+        setState(() {
+          _isAuthenticating = true;
+        });
+
         final userCredentials = await _firebase.createUserWithEmailAndPassword(
           email: _enteredEmail,
           password: _enteredPassword,
@@ -70,6 +75,9 @@ class _AuthScreenState extends State<AuthScreen> {
         await storageRef.putFile(_selectedImage!);
         final imageUrl = await storageRef.getDownloadURL();
 
+        // setState(() {
+        //   _isAuthenticating = false;
+        // });
         print(imageUrl);
       }
 
@@ -87,6 +95,10 @@ class _AuthScreenState extends State<AuthScreen> {
           ),
         ),
       );
+
+      setState(() {
+        _isAuthenticating = false;
+      });
     }
   }
 
@@ -162,29 +174,33 @@ class _AuthScreenState extends State<AuthScreen> {
                             },
                           ),
                           const SizedBox(height: 12),
-                          ElevatedButton(
-                            onPressed: _submit,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(context)
-                                  .colorScheme
-                                  .primaryContainer,
+                          if (_isAuthenticating)
+                            const CircularProgressIndicator(),
+                          if (!_isAuthenticating)
+                            ElevatedButton(
+                              onPressed: _submit,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Theme.of(context)
+                                    .colorScheme
+                                    .primaryContainer,
+                              ),
+                              child: Text(
+                                _isLogin ? 'Login' : 'Signup',
+                              ),
                             ),
-                            child: Text(
-                              _isLogin ? 'Login' : 'Signup',
+                          if (!_isAuthenticating)
+                            TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  _isLogin = !_isLogin;
+                                });
+                              },
+                              child: Text(
+                                _isLogin
+                                    ? 'Create an account'
+                                    : 'I already have an account',
+                              ),
                             ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              setState(() {
-                                _isLogin = !_isLogin;
-                              });
-                            },
-                            child: Text(
-                              _isLogin
-                                  ? 'Create an account'
-                                  : 'I already have an account',
-                            ),
-                          )
                         ],
                       ),
                     ),
