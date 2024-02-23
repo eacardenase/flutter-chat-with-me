@@ -37,7 +37,6 @@ class ChatScreen extends StatelessWidget {
       ),
       body: const Padding(
         padding: EdgeInsets.symmetric(
-          horizontal: 10,
           vertical: 20,
         ),
         child: Column(
