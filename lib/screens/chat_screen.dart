@@ -25,10 +25,12 @@ class _ChatScreenState extends State<ChatScreen> {
 
     await fcm.requestPermission();
 
-    final token = await fcm
-        .getToken(); // get current device address to use later for sending personalized notifications
+    // final token = await fcm
+    //     .getToken(); // get current device address to use later for sending personalized notifications
 
-    print(token);
+    // print(token);
+
+    fcm.subscribeToTopic('chat');
   }
 
   @override
